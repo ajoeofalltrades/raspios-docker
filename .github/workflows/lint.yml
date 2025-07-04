@@ -1,0 +1,51 @@
+# .github/workflows/lint.yml
+name: Lint
+on: [pull_request, push]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      # pull code to job runner
+      - uses: actions/checkout@v4
+
+      # check for common Bash errors & consistent Bash formatting
+      - name: ShellCheck + shfmt
+        id: shell  # make its output easy to reference
+        uses: reviewdog/action-shellcheck@v1  # wraps shellcheck 0.9+
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-check
+          pattern: 'scripts/**/*.sh'  # or simply '**/*.sh'
+          level: warning  # annotate but don’t fail PR
+
+      # run shfmt AFTER shellcheck so diffs are readable
+      - name: shfmt (auto-fix)
+        run: |
+          go install mvdan.cc/sh/v3/cmd/shfmt@latest
+          shfmt -i 2 -w scripts  # -w = write changes; tweak to -d for CI-only
+      
+      # check for common errors in GitHub Action syntax
+      - name: actionlint 
+        uses: reviewdog/action-actionlint@v1  # adds PR annotations
+        with:
+          reporter: github-check
+      
+      # check for common Markdown errors
+      - name: Markdown lint
+        uses: reviewdog/action-markdownlint@v0  # tiny wrapper
+        with:
+          reporter: github-check
+          pattern: "*.md docs/**/*.md"
+      
+      ## check for common makefile errors with checkmake
+      - name: Lint Makefile
+        uses: reviewdog/action-check@v1 # generic wrapper that annotates PRs
+        with:
+          name: checkmake
+          reporter: github-check
+          workdir: .
+          # install & run in one go
+          run: |
+            go install github.com/mrtazz/checkmake@latest
+            checkmake Makefile

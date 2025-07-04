@@ -1,0 +1,31 @@
+# Configures tools used by pre-commit framework (see pre-commit.com)
+# This is used by developers to check changes to this project's code for errors before committing.
+
+repos:
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.10.0
+    hooks: [id: shellcheck]
+
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.11.0-1
+    hooks:
+      - id: shfmt
+        args: [-i, "2", -ci]  # 2-space indent, switch-indent
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.0
+    hooks: [id: actionlint]
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.39.0
+    hooks:
+      - id: markdownlint
+        types: [markdown]
+        
+  - repo: https://github.com/mrtazz/checkmake
+    rev: 0.2.2
+    hooks:
+      - id: checkmake
+        entry: checkmake
+        language: golang
+        types: [makefile]
