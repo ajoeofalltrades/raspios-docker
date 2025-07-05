@@ -39,7 +39,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           reporter: github-check
-          pattern: "*.md docs/**/*.md"
+          markdownlint_flags: "*.md docs/**/*.md"
       
       ## check for common makefile errors with checkmake
       - name: Setup reviewdog
@@ -48,5 +48,6 @@ jobs:
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          go install github.com/mrtazz/checkmake@latest
-          checkmake Makefile 2>&1 | reviewdog -f=checkstyle -name=checkmake -reporter=github-check
+          curl -sSL -o checkmake "https://github.com/mrtazz/checkmake/releases/latest/download/checkmake_linux_amd64"
+          chmod +x checkmake
+          ./checkmake Makefile 2>&1 | reviewdog -f=checkstyle -name=checkmake -reporter=github-check
