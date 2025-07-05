@@ -23,29 +23,45 @@ jobs:
       - name: shfmt (auto-fix)
         run: |
           go install mvdan.cc/sh/v3/cmd/shfmt@latest
+          export PATH="$HOME/go/bin:$PATH"
           shfmt -i 2 -w scripts  # -w = write changes; tweak to -d for CI-only
       
       # check for common errors in GitHub Action syntax
       - name: actionlint 
         uses: reviewdog/action-actionlint@v1  # adds PR annotations
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           reporter: github-check
       
       # check for common Markdown errors
       - name: Markdown lint
         uses: reviewdog/action-markdownlint@v0  # tiny wrapper
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           reporter: github-check
-          pattern: "*.md docs/**/*.md"
+          markdownlint_flags: "*.md docs/**/*.md"
       
       ## check for common makefile errors with checkmake
-      - name: Lint Makefile
-        uses: reviewdog/action-check@v1 # generic wrapper that annotates PRs
-        with:
-          name: checkmake
-          reporter: github-check
-          workdir: .
-          # install & run in one go
-          run: |
-            go install github.com/mrtazz/checkmake@latest
-            checkmake Makefile
+      - name: Setup reviewdog
+        uses: reviewdog/action-setup@v1
+      - name: Install and run checkmake
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -s Makefile ]; then
+            curl -sSL -o checkmake "https://github.com/checkmake/checkmake/releases/download/0.2.2/checkmake-0.2.2.linux.amd64"
+            chmod +x checkmake
+            if [ ! -x ./checkmake ]; then
+              echo "checkmake binary not found or not executable!"
+              exit 1
+            fi
+            file ./checkmake
+            output=$(./checkmake Makefile 2>&1)
+            if [ -n "$output" ]; then
+              echo "$output" | reviewdog -f=checkstyle -name=checkmake -reporter=github-check
+            else
+              echo "No checkmake issues found."
+            fi
+          else
+            echo "No non-empty Makefile found, skipping checkmake."
+          fi
