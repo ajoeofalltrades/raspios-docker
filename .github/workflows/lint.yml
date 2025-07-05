@@ -23,6 +23,7 @@ jobs:
       - name: shfmt (auto-fix)
         run: |
           go install mvdan.cc/sh/v3/cmd/shfmt@latest
+          export PATH="$HOME/go/bin:$PATH"
           shfmt -i 2 -w scripts  # -w = write changes; tweak to -d for CI-only
       
       # check for common errors in GitHub Action syntax
