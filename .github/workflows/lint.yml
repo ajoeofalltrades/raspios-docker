@@ -29,23 +29,23 @@ jobs:
       - name: actionlint 
         uses: reviewdog/action-actionlint@v1  # adds PR annotations
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           reporter: github-check
       
       # check for common Markdown errors
       - name: Markdown lint
         uses: reviewdog/action-markdownlint@v0  # tiny wrapper
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           reporter: github-check
           pattern: "*.md docs/**/*.md"
       
       ## check for common makefile errors with checkmake
-      - name: Lint Makefile
-        uses: reviewdog/action-check@v1 # generic wrapper that annotates PRs
-        with:
-          name: checkmake
-          reporter: github-check
-          workdir: .
-          # install & run in one go
-          run: |
-            go install github.com/mrtazz/checkmake@latest
-            checkmake Makefile
+      - name: Setup reviewdog
+        uses: reviewdog/action-setup@v1
+      - name: Install and run checkmake
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          go install github.com/mrtazz/checkmake@latest
+          checkmake Makefile 2>&1 | reviewdog -f=checkstyle -name=checkmake -reporter=github-check
