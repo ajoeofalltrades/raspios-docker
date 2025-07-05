@@ -49,7 +49,7 @@ jobs:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -s Makefile ]; then
-            curl -sSL -o checkmake "https://github.com/mrtazz/checkmake/releases/latest/download/checkmake_linux_amd64"
+            curl -sSL -o checkmake "https://github.com/checkmake/checkmake/releases/download/0.2.2/checkmake-0.2.2.linux.amd64"
             chmod +x checkmake
             if [ ! -x ./checkmake ]; then
               echo "checkmake binary not found or not executable!"
