@@ -51,6 +51,11 @@ jobs:
           if [ -s Makefile ]; then
             curl -sSL -o checkmake "https://github.com/mrtazz/checkmake/releases/latest/download/checkmake_linux_amd64"
             chmod +x checkmake
+            if [ ! -x ./checkmake ]; then
+              echo "checkmake binary not found or not executable!"
+              exit 1
+            fi
+            file ./checkmake
             output=$(./checkmake Makefile 2>&1)
             if [ -n "$output" ]; then
               echo "$output" | reviewdog -f=checkstyle -name=checkmake -reporter=github-check
